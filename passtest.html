@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SySIKT - Passordsjekkar</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #ddd;
+            padding: 40px;
+            width: 100%;
+            max-width: 560px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        h1 { text-align: center; margin: 0 0 30px; font-size: 2.2em; font-weight: 700; color:#222; }
+
+        label { font-size: 1.1em; font-weight: 600; display: block; margin-bottom: 10px; }
+
+        #passord {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #fafafa;
+            color: #333;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        #passord::placeholder { color: #999; }
+        #passord:focus {
+            outline: none;
+            background: #fff;
+            border-color: #888;
+            box-shadow: 0 0 0 3px rgba(100,100,100,0.15);
+        }
+
+        .krav-liste {
+            margin: 30px 0;
+            display: grid;
+            gap: 14px;
+        }
+
+        .krav {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 1.05em;
+            padding: 12px 16px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .ikon {
+            font-size: 24px;
+            width: 30px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .ok { color: #2ecc71; }
+        .feil { color: #e74c3c; }
+
+        .progressbar { height: 10px; background: #e0e0e0; border-radius: 6px; overflow: hidden; margin: 25px 0; }
+        .fyll { height: 100%; width: 0%; background: #2ecc71; transition: width 0.5s ease; }
+
+        #styrke {
+            text-align: center;
+            font-size: 1.4em;
+            font-weight: 700;
+            margin: 20px 0 0;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color:#222;
+        }
+
+        .stor-hake {
+            font-size: 2em;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .vis-hake { opacity: 1; transform: scale(1); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Passordsjekkar</h1>
+
+    <label for="passord">Skriv inn passordet ditt:</label>
+    <input type="password" id="passord" placeholder="Minst 16 teikn + stor bokstav + spesialteikn" autocomplete="off">
+
+    <div class="krav-liste">
+        <div class="krav" id="krav-lengde">
+            <div class="ikon feil">✗</div>
+            <span>Minst 16 teikn (Hugs mellomrom)</span>
+        </div>
+        <div class="krav" id="krav-stor">
+            <div class="ikon feil">✗</div>
+            <span>Minst ein stor bokstav </span>
+        </div>
+        <div class="krav" id="krav-spesial">
+            <div class="ikon feil">✗</div>
+            <span>Minst eit spesialteikn </span>
+        </div>
+    </div>
+
+    <div class="progressbar"><div class="fyll" id="fyll"></div></div>
+
+    <div id="styrke">❤</div>
+</div>
+
+<script>
+    const input   = document.getElementById('passord');
+    const lengde  = document.getElementById('krav-lengde').querySelector('.ikon');
+    const stor    = document.getElementById('krav-stor').querySelector('.ikon');
+    const spesial = document.getElementById('krav-spesial').querySelector('.ikon');
+    const fyll    = document.getElementById('fyll');
+    const styrke  = document.getElementById('styrke');
+
+    input.addEventListener('input', () => {
+        const pw = input.value;
+
+        const harLengde  = pw.length >= 16;
+        const harStor    = /[A-ZÆØÅ]/.test(pw);
+        const harSpesial = /[^a-zA-ZæøåÆØÅ0-9\s]/.test(pw);
+
+        lengde.textContent  = harLengde ? '✓' : '✗';
+        stor.textContent    = harStor   ? '✓' : '✗';
+        spesial.textContent = harSpesial ? '✓' : '✗';
+
+        lengde.className  = harLengde ? 'ikon ok' : 'ikon feil';
+        stor.className    = harStor   ? 'ikon ok' : 'ikon feil';
+        spesial.className = harSpesial ? 'ikon ok' : 'ikon feil';
+
+        const oppfylt = [harLengde, harStor, harSpesial].filter(Boolean).length;
+        fyll.style.width = oppfylt === 3 ? '100%' : (oppfylt * 33.33) + '%';
+
+        if (!pw) {
+            styrke.innerHTML = 'Skriv inn passord for å teste styrken';
+        } else if (oppfylt === 3) {
+            styrke.innerHTML = 'Sterkt og godkjent! <span class="stor-hake vis-hake">❤</span>';
+        } else if (pw.length < 16) {
+            styrke.textContent = 'For kort – treng minst 16 teikn';
+        } else {
+            styrke.textContent = 'Nesten! ' + (3 - oppfylt) + ' krav igjen';
+        }
+    });
+</script>
+
+</body>
+</html>
